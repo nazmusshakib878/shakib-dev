@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        
+        .admin-container { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 250px;
+            background: #1f2937;
+            color: white;
+            padding: 20px;
+        }
+        
+        .main-content { flex: 1; padding: 20px; }
+        
+        .section { 
+            background: white; 
+            padding: 25px; 
+            margin-bottom: 30px; 
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-danger { background: #dc2626; }
+        .btn-success { background: #10b981; }
+        
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        
+        .tab-btn {
+            background: #4b5563;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        .tab-btn.active { background: #2563eb; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="sidebar">
+            <h2 style="margin-bottom: 30px;">Admin Panel</h2>
+            <div style="margin-bottom: 20px;">
+                <button class="tab-btn active" onclick="showTab('about')">About</button>
+                <button class="tab-btn" onclick="showTab('skills')">Skills</button>
+                <button class="tab-btn" onclick="showTab('projects')">Projects</button>
+            </div>
+            <a href="/" style="color: white; text-decoration: none; display: block; margin-top: 30px;">
+                ← Back to Portfolio
+            </a>
+        </div>
+        
+        <div class="main-content">
+            <!-- About Tab -->
+            <div id="about-tab" class="tab-content active">
+                <div class="section">
+                    <h2>Edit About Section</h2>
+                    <form action="/update_about" method="POST">
+                        <input type="text" name="name" placeholder="Your Name" 
+                               value="{{ about[1] if about else '' }}" required>
+                        <input type="text" name="title" placeholder="Professional Title"
+                               value="{{ about[2] if about else '' }}">
+                        <textarea name="bio" placeholder="Your Bio" rows="4" required>{{ about[3] if about else '' }}</textarea>
+                        <input type="email" name="email" placeholder="Email"
+                               value="{{ about[4] if about else '' }}">
+                        <input type="text" name="phone" placeholder="Phone"
+                               value="{{ about[5] if about else '' }}">
+                        <input type="text" name="location" placeholder="Location"
+                               value="{{ about[6] if about else '' }}">
+                        <button type="submit">Save About</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Skills Tab -->
+            <div id="skills-tab" class="tab-content">
+                <div class="section">
+                    <h2>Add New Skill</h2>
+                    <form action="/add_skill" method="POST">
+                        <input type="text" name="name" placeholder="Skill Name" required>
+                        <input type="number" name="level" placeholder="Level (1-100)" min="0" max="100" required>
+                        <input type="text" name="category" placeholder="Category">
+                        <button type="submit" class="btn-success">Add Skill</button>
+                    </form>
+                </div>
+                
+                <div class="section">
+                    <h2>Existing Skills</h2>
+                    {% if skills %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Skill</th>
+                                <th>Level</th>
+                                <th>Category</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for skill in skills %}
+                            <tr>
+                                <td>{{ skill[1] }}</td>
+                                <td>{{ skill[2] }}%</td>
+                                <td>{{ skill[3] }}</td>
+                                <td>
+                                    <a href="/delete_skill/{{ skill[0] }}" 
+                                       style="color: #dc2626; text-decoration: none;"
+                                       onclick="return confirm('Delete this skill?')">
+                                        Delete
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>No skills added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Projects Tab -->
+            <div id="projects-tab" class="tab-content">
+                <div class="section">
+                    <h2>Add New Project</h2>
+                    <form action="/add_project" method="POST">
+                        <input type="text" name="title" placeholder="Project Title" required>
+                        <textarea name="description" placeholder="Project Description" rows="3" required></textarea>
+                        <input type="text" name="technologies" placeholder="Technologies (comma separated)">
+                        <input type="url" name="github_link" placeholder="GitHub Link">
+                        <input type="url" name="live_link" placeholder="Live Demo Link">
+                        <button type="submit" class="btn-success">Add Project</button>
+                    </form>
+                </div>
+                
+                <div class="section">
+                    <h2>Existing Projects</h2>
+                    {% if projects %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Technologies</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td>{{ project[1] }}</td>
+                                <td>{{ project[2][:50] }}...</td>
+                                <td>{{ project[3] }}</td>
+                                <td>
+                                    <a href="/delete_project/{{ project[0] }}" 
+                                       style="color: #dc2626; text-decoration: none;"
+                                       onclick="return confirm('Delete this project?')">
+                                        Delete
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>No projects added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.textContent.toLowerCase().includes(tabName)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Show selected tab
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+                if(tab.id === tabName + '-tab') {
+                    tab.classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
